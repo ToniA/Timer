@@ -129,7 +129,7 @@ void doAfter(void *context)
 }
 ```
 
-You can attach up to 10 events to a timer.
+By default the timer supports 10 events, but you can also specify a different number when instantiating the timer.
 
 Note that the callback functions have a "context" parameter.  The context value is specified when the event is created and it will be sent to callback function when the timer fires. The context is a void pointer, so it can be cast to any other data type.  Its use is optional, if you don't need it, just code `(void*)0` as in the above examples, but be sure that the callback function definitions have it in their argument list, i.e. `(void *context)`.
 
@@ -140,6 +140,22 @@ As with all libraries, unzip the file into the *libraries* folder in your Arduin
 The Timer library is compatible with both Arduino 1.0+ and earlier versions.
 
 ##Reference
+
+###Timer();
+#####Description
+Creates a new instance of a timer. The maximum number of timers this instance can handle is 10. The internal event array consumes 0xBE bytes of SRAM in the .bss section.
+#####Syntax
+`Timer t;`
+#####Returns
+A *Timer* instance
+
+###Timer(byte numberOfEvents);
+#####Description
+Creates a new instance of a timer. The internal event array for the timers is allocated dynamically from the heap using *malloc*. Each additional event will consume 0x13 bytes of SRAM.
+#####Syntax
+`Timer t(numberOfEvents);`
+#####Returns
+A *Timer* instance
 
 ###every();
 #####Description
