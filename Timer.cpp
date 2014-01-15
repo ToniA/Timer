@@ -23,13 +23,16 @@
 #include <Arduino.h>
 #include <Timer.h>
 
+ // The 'events' are statically allocated in .bss only if the constructor is called without parameters
 Timer::Timer(void)
 {
+	static Event events[DEFAULT_NUMBER_OF_EVENTS];
 	_numberOfEvents = DEFAULT_NUMBER_OF_EVENTS;
-	_events = (Event*)malloc(_numberOfEvents * sizeof(Event));
-	memset(_events, EVENT_NONE, _numberOfEvents * sizeof(Event));
+	_events = events;
+	memset(_events, EVENT_NONE, DEFAULT_NUMBER_OF_EVENTS * sizeof(Event));
 }
 
+ // The 'events' are dynamically allocated from the heap if the constructor is called with a parameter
 Timer::Timer(byte numberOfEvents)
 {
 	_numberOfEvents = numberOfEvents;
@@ -37,9 +40,12 @@ Timer::Timer(byte numberOfEvents)
 	memset(_events, EVENT_NONE, _numberOfEvents * sizeof(Event));
 }
 
+// If a timer is ever disposed, the dynamically allocated memory for 'events' should be free'd
 Timer::~Timer(void)
 {
-	free(_events);
+	if ( _numberOfEvents != DEFAULT_NUMBER_OF_EVENTS ) {
+		free(_events);
+	}
 }
 
 int8_t Timer::every(unsigned long period, void (*callback)(), int repeatCount)
