@@ -20,17 +20,26 @@
  http://www.simonmonk.org
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-// For Arduino 1.0 and earlier
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
-
-#include "Timer.h"
+#include <Arduino.h>
+#include <Timer.h>
 
 Timer::Timer(void)
 {
+	_numberOfEvents = DEFAULT_NUMBER_OF_EVENTS;
+	_events = (Event*)malloc(_numberOfEvents * sizeof(Event));
+	memset(_events, EVENT_NONE, _numberOfEvents * sizeof(Event));
+}
+
+Timer::Timer(byte numberOfEvents)
+{
+	_numberOfEvents = numberOfEvents;
+	_events = (Event*)malloc(_numberOfEvents * sizeof(Event));
+	memset(_events, EVENT_NONE, _numberOfEvents * sizeof(Event));
+}
+
+Timer::~Timer(void)
+{
+	free(_events);
 }
 
 int8_t Timer::every(unsigned long period, void (*callback)(), int repeatCount)
@@ -95,7 +104,7 @@ int8_t Timer::pulseImmediate(uint8_t pin, unsigned long period, uint8_t pulseVal
 {
 	int8_t id(oscillate(pin, period, pulseValue, 1));
 	// now fix the repeat count
-	if (id >= 0 && id < MAX_NUMBER_OF_EVENTS) {
+	if (id >= 0 && id < _numberOfEvents) {
 		_events[id].repeatCount = 1;
 	}
 	return id;
@@ -104,14 +113,14 @@ int8_t Timer::pulseImmediate(uint8_t pin, unsigned long period, uint8_t pulseVal
 
 void Timer::stop(int8_t id)
 {
-	if (id >= 0 && id < MAX_NUMBER_OF_EVENTS) {
+	if (id >= 0 && id < _numberOfEvents) {
 		_events[id].eventType = EVENT_NONE;
 	}
 }
 
 void Timer::update(void)
 {
-	for (int8_t i = 0; i < MAX_NUMBER_OF_EVENTS; i++)
+	for (int8_t i = 0; i < _numberOfEvents; i++)
 	{
 		if (_events[i].eventType != EVENT_NONE)
 		{
@@ -122,7 +131,7 @@ void Timer::update(void)
 
 int8_t Timer::findFreeEventIndex(void)
 {
-	for (int8_t i = 0; i < MAX_NUMBER_OF_EVENTS; i++)
+	for (int8_t i = 0; i < _numberOfEvents; i++)
 	{
 		if (_events[i].eventType == EVENT_NONE)
 		{
